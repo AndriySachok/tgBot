@@ -12,22 +12,12 @@ import https from 'https'
 
 
 const app = express()
-
-const options = {
-    key: fs.readFileSync(`${__dirname}/../config/https/key.pem`),
-    cert: fs.readFileSync(`${__dirname}/../config/https/cert.pem`)
-}
-const passphrase = 'boogy'
-options.passphrase = passphrase
-
-const PORT = 443;
-const server = https.createServer(options, app);
+const PORT = 3000;
+app.use(cors())
 
 const webAppUrl = 'https://tgbotmini-app.web.app/'
 let webTemplate = ''
 
-app.use(express.json())
-app.use(cors())
 
 const bot = new Telegraf(config.get('TELEGRAM_TOKEN'))
 const INITIAL_SESSION = {
@@ -105,7 +95,7 @@ app.get('/api/page', (req, res) => {
     res.json(webTemplate)
 })
 
-server.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`)
 })
 
