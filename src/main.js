@@ -8,10 +8,21 @@ import { removeFile } from './utils.js'
 import fs from 'fs'
 import express from 'express'
 import cors from 'cors'
+import https from 'https'
 
 
 const app = express()
-const port = 3000
+
+const options = {
+    key: fs.readFileSync(`${__dirname}/../config/https/key.pem`),
+    cert: fs.readFileSync(`${__dirname}/../config/https/cert.pem`)
+}
+const passphrase = 'boogy'
+options.passphrase = passphrase
+
+const PORT = 443;
+const server = https.createServer(options, app);
+
 const webAppUrl = 'https://tgbotmini-app.web.app/'
 let webTemplate = ''
 
@@ -94,8 +105,8 @@ app.get('/api/page', (req, res) => {
     res.json(webTemplate)
 })
 
-app.listen(port, () => {
-    console.log(`Server running on port: ${port}`)
+server.listen(PORT, () => {
+    console.log(`Server running on port: ${PORT}`)
 })
 
 process.once('SIGINT', () => bot.stop('SIGINT'))

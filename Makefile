@@ -1,4 +1,4 @@
 build: 
-	docker build -t tgbot .
+	sudo docker build -t tgbot .
 run:
-	docker run -d -p 3000:3000 --name tgBot --rm tgbot
+	sudo docker run -d -p 443:443 --name tgBot --rm tgbot
