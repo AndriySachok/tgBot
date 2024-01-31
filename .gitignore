@@ -3,4 +3,4 @@ node_modules/
 .vscode
 config/default.json
 UI/
-.pem
+*.pem
