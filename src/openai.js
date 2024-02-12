@@ -17,8 +17,6 @@ class OpenAI{
                 model: 'gpt-3.5-turbo',
                 messages: input
             })
-            const historyPath = `${__dirname}/history.txt`
-            fs.writeFileSync(historyPath, JSON.stringify(response.data.choices[0].message.content))
             return response.data.choices[0].message
         } catch(e){
             console.log('Error while answering request', e.message)

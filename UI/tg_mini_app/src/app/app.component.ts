@@ -1,33 +1,47 @@
 import { ConfigService } from './services/config.service';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { SafeHtmlPipe } from './random_stuff/safeHtml';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Location } from '@angular/common';
 
 
 @Component({
   selector: 'app-root',
-  template: `<div [innerHTML]="webPage | safeHtml"></div>`,
+  template: `<div [innerHTML]="this.userData | safeHtml"></div>`,
  // styleUrls: ['./app.component.css']
 })
 
 export class AppComponent implements OnInit{
-  constructor(private config: ConfigService, private readonly sanitizer: DomSanitizer) {}
+  
+  constructor(private route: ActivatedRoute,
+              private config: ConfigService,
+              private readonly sanitizer: DomSanitizer,
+              private location: Location) {}
 
-  webPage: string = ''
+  userId: string | null = null;
+  userData: string = '';
 
   ngOnInit(): void {
     const intervalTime = 3000
 
-    this.config.getConfig(intervalTime).subscribe({
-      next: (data) => {
-        this.webPage = data.replace(/"/g, '');
-        this.webPage = this.webPage.replace(/\\/g, '"');
-        console.log(this.webPage)
-      },
-      error: (error) => {
-        console.error('Error while getting response', error)
-      }
-    })
+    const currentUrl = this.location.path();
+    console.log('Current URL:', currentUrl);
+
+    // Extract userId from the URL
+    const parts = currentUrl.split('/');
+    this.userId = parts[parts.length - 1];
+
+      this.config.getConfig(intervalTime, this.userId).subscribe({
+        next: (data) => {
+          if(data !== null) this.userData = data
+          console.log(this.userData)
+        },
+        error: (error) => {
+          console.error('Error while getting response', error)
+        }
+      })
+    
   }
 
 }

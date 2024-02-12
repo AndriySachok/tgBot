@@ -4,38 +4,45 @@ import { message } from 'telegraf/filters'
 import { ogg, __dirname } from './ogg.js'
 import { openai } from './openai.js'
 import { code } from 'telegraf/format'
-import { removeFile } from './utils.js'
-import fs from 'fs'
+import { removeFile, getUserData } from './utils.js'
 import express from 'express'
 import cors from 'cors'
-import https from 'https'
+import client from './redisClient.js'
+import { createHashValue } from './crypto.js'
 
 
 const app = express()
-const PORT = 3000;
 app.use(cors())
+const PORT = 3000;
 
-const webAppUrl = 'https://tgbotmini-app.web.app/'
+const baseUrl = 'http://ec2-51-20-249-219.eu-north-1.compute.amazonaws.com'
 let webTemplate = ''
 
 
 const bot = new Telegraf(config.get('TELEGRAM_TOKEN'))
+bot.use(async (ctx, next) => {
+    const userId = String(ctx.from.id)
+    ctx.userHashedId =  await createHashValue(userId)
+    next()
+})
 const INITIAL_SESSION = {
     messages: [],
 }
+
+
+//commands
 
 bot.command('start', async (ctx) => {
     ctx.session = {};
     ctx.session = INITIAL_SESSION
     await ctx.reply(
-        'Waiting for the first message',
-        Markup.keyboard([Markup.button.webApp('Preview', webAppUrl)])
+        'Waiting for the first message'
     )
 })
 
 bot.command('clean', async (ctx) => {
     ctx.session = {};
-    fs.createWriteStream(`${__dirname}/history.txt`, '')
+    await client.del(ctx.userHashedId)
     ctx.reply(code('Session has been cleaned successfuly'))
 })
 
@@ -53,14 +60,18 @@ bot.on(message('voice'), async (ctx) => {
         removeFile(mp3Path)
 
         await ctx.reply(code(`Your request: ${text}`))
-        const prevMessage = fs.readFileSync(`${__dirname}/history.txt`, 'utf-8')
+
+        const prevMessage = await getUserData(ctx.userHashedId)
         const messages = [{role: 'user', content: `${prevMessage}. ${text} Write me only plain code without explanation.`}]
         await ctx.reply(code('Processing...'))
         const response = await openai.chat(messages)
         await ctx.reply(response.content)
+        await ctx.reply(`http://localhost:4200/user/${ctx.userHashedId}`)
 
-        const correctedString = response.content.replace(/\n/g, ' ')
-        webTemplate = correctedString
+        webTemplate = response.content.replace(/\n/g, ' ')
+
+        await client.set(ctx.userHashedId, webTemplate)
+        await client.expire(ctx.userHashedId, 3600)
 
     } catch (e){
         console.log('Error while voice message', e.message)
@@ -80,8 +91,9 @@ bot.on(message('text'), async (ctx) => {
         ctx.session.messages.push({role: 'assistant', content: response.content})
 
         await ctx.reply(response.content)
-        const correctedString = response.content.replace(/\n/g, ' ')
-        webTemplate = correctedString
+        webTemplate = response.content.replace(/\n/g, ' ')
+        await client.set(ctx.userHashedId, webTemplate)
+        await client.expire(ctx.userHashedId, 3600)
        
     } catch (e){
         console.log('Error while text message', e.message)
@@ -90,10 +102,17 @@ bot.on(message('text'), async (ctx) => {
 
 bot.launch()
 
-
-app.get('/api/page', (req, res) => {
-    res.json(webTemplate)
+app.get('/api/page/:userId', async (req, res) => {
+    try {
+        const data = await getUserData(req.params.userId)
+        res.json(data)
+    } catch (error) {
+        console.error('Error:', error)
+        res.status(500).json({ error: 'Internal Server Error' })
+    }
 })
+
+
 
 app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`)
