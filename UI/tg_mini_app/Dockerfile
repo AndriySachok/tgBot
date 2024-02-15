@@ -1,7 +1,7 @@
 FROM node:20.9.0 as build
 COPY . .
 RUN npm cache clean --force
-RUN npm install
+RUN npm ci
 RUN npm run build
 
 FROM nginx:latest
