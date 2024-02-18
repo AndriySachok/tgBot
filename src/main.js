@@ -15,7 +15,6 @@ const app = express()
 app.use(cors())
 const PORT = 3000;
 
-const baseUrl = 'http://ec2-51-20-249-219.eu-north-1.compute.amazonaws.com'
 let webTemplate = ''
 
 
@@ -66,7 +65,7 @@ bot.on(message('voice'), async (ctx) => {
         await ctx.reply(code('Processing...'))
         const response = await openai.chat(messages)
         await ctx.reply(response.content)
-        await ctx.reply(`http://localhost:4200/user/${ctx.userHashedId}`)
+        await ctx.reply(`http://ec2-13-53-40-12.eu-north-1.compute.amazonaws.com/user/${ctx.userHashedId}`)
 
         webTemplate = response.content.replace(/\n/g, ' ')
 

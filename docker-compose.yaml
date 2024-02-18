@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    
+  backend:
+    image: tgbot:latest
+    build: ./
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+    links:
+      - redis
+
+  frontend:
+    image: ang_img:latest
+    build: ./UI/tg_mini_app/
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  

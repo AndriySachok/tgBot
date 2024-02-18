@@ -5,12 +5,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { SafeHtmlPipe } from './random_stuff/safeHtml';
+import { TestComponent } from './test/test.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    SafeHtmlPipe
+    SafeHtmlPipe,
+    TestComponent
   ],
   imports: [
     BrowserModule,

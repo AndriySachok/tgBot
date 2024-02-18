@@ -8,7 +8,7 @@ import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  template: `<div [innerHTML]="this.userData | safeHtml"></div>`,
+  template: `<div [innerHTML]="this.userData | safeHtml"></div><router-outlet></router-outlet>`,
  // styleUrls: ['./app.component.css']
 })
 

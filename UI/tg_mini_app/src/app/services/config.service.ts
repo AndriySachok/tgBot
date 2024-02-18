@@ -7,8 +7,8 @@ import { Observable, timer, switchMap } from 'rxjs';
 })
 export class ConfigService {
   constructor(private httpClient: HttpClient) {  }
-
-  private configUrl = 'http://localhost:3000/api/page/';
+  private host = 'backend';
+  private configUrl = `http://localhost:3000/api/page/`;
 
   getConfig(intervalTime: number, userId: string | null): Observable<string> {
    
